@@ -14,22 +14,27 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Set up ZMK environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install ZMK dependencies
         run: |
-          python3 -m venv venv
+          python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
-          pip install zmk
+          pip install west
 
       - name: Build firmware
         run: |
           source venv/bin/activate
-          zmk build -s app -b nice_nano_v2 -- -DZMK_CONFIG=config -DSHIELD=my_5x7
+          west build -s app -b nice_nano_v2 -- -DZMK_CONFIG=config -DSHIELD=my_5x7
 
       - name: Upload firmware
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3   # <-- เปลี่ยนจาก v2 เป็น v3
         with:
           name: firmware
           path: app/build/zephyr/zmk.uf2
