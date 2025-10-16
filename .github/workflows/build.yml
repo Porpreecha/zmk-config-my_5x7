@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build:
@@ -15,26 +12,30 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          submodules: recursive   # <-- สำคัญ! ต้อง clone submodules ของ ZMK
 
-      - name: Set up Python
+      - name: Install Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
-      - name: Install ZMK dependencies
+      - name: Install west
         run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install west
+
+      - name: Initialize ZMK workspace
+        run: |
+          west init -l .       # กำหนด workspace เป็น repo ปัจจุบัน
+          west update
 
       - name: Build firmware
         run: |
-          source venv/bin/activate
           west build -s app -b nice_nano_v2 -- -DZMK_CONFIG=config -DSHIELD=my_5x7
 
       - name: Upload firmware
-        uses: actions/upload-artifact@v4   # <-- เปลี่ยนเป็น v4
+        uses: actions/upload-artifact@v4
         with:
           name: firmware
           path: app/build/zephyr/zmk.uf2
